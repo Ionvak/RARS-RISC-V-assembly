@@ -1,14 +1,13 @@
 		.eqv	SYS_EXIT, 93
 		.eqv	GET_TIME, 30
 		.eqv	READ_FLOAT, 6
-		.eqv	HEAP_MEM, 9
 		.eqv	SLEEP, 32
-		.eqv	white_color, 0x00FFFFFF
-		.eqv	DISPLAY_SIZE, 16384
+		.eqv	AIR_FRICTION, 1024
+		.eqv	COLOR, 0x00FFFFFF	#color is set to white
 	
 		.data 	
-gravity: 	.float	-9.8
-time_step:	.float	0.0625
+Gravity: 	.float	-9.8
+TimeStep:	.float	0.0625
 			
 		.text	
 		.globl _start
@@ -18,12 +17,7 @@ _start:
 		ecall
 		fmv.s	 ft1, fa0		#Store the initial velocity value in ft1.
 		
-		li 	 a7, HEAP_MEM
-		li	 a0, DISPLAY_SIZE
-		ecall
-		mv	 s0, a0
-		
-		li	 t0, white_color
+		li	 t0, COLOR
 		lui 	 t3, 0x10040    	#store beginning of heap memory address space.
 		mv	 t5, t3
 		li	 t2, 32512		#move to bottom-middle of the display.
@@ -33,21 +27,17 @@ _start:
 		addi	 t5, t5, 256		#store pixel representing top of display in t5.
 		
 update_velocity:				
-		li 	 t0, 1024
+		li 	 t0, AIR_FRICTION
 		fcvt.s.w ft4, t0
 		fdiv.s	 ft3, ft1, ft4
-		fsub.s	 ft1, ft1, ft3		#Store the velocity decrement in ft2
+		fsub.s	 ft1, ft1, ft3		#calculate the effect of air friction within the current steo.
 		
-		la	 t0, gravity
+		la	 t0, Gravity
 		flw	 ft3, (t0)
-		la	 t0, time_step
+		la	 t0, TimeStep		#calculate the effect of gravity within the current step.
 		flw	 ft2, (t0)
 		fmul.s	 ft2, ft2, ft3
 		fadd.s	 ft1, ft1, ft2		#Store the calculated new velocity for the current step.
-		
-		li	 a7, 2			#PRINTING FOR TESTING (REMOVE THIS).
-		fmv.s	 fa0, ft1
-		ecall
 			
 move_ball:
 		li	 t2, 512
@@ -58,7 +48,7 @@ move_ball:
 		bne	 t3, t4, continue
 		beqz	 t1, finish		#go to end if ball is at 0 velocity (stationary) and is in sarting position.
 		
-continue:	li 	 a7, SLEEP
+continue:	li 	 a7, SLEEP		#pause the program for 62 milliseconds (about 1/16 sec).
 		li	 a0, 62
 		ecall
 		
@@ -69,25 +59,25 @@ continue:	li 	 a7, SLEEP
 		j	 update_velocity	#don't move if velocity is 0.
 		
 move_up:
-		beq	 t3, t5, bounce
+		beq	 t3, t5, bounce		#bounce if top of screen is met.
 		sub	 t3,t3,t2
-		li	 t0, white_color
-		sw	 t0, (t3)
+		li	 t0, COLOR
+		sw	 t0, (t3)		#update upper pixel (relative to current pixel) to color.
 		beq	 t3, t5, bounce
 		j	 update_velocity
 
 move_down:
-		beq	 t3, t4, bounce
+		beq	 t3, t4, bounce		#bounce if bottom of screen is met.
 		add	 t3,t3,t2
-		li	 t0, white_color
-		sw	 t0, (t3)
+		li	 t0, COLOR
+		sw	 t0, (t3)		#update lower pixel (relative to current pixel) to color.
 		j	 update_velocity
 		
 bounce:		
-		fneg.s	ft1, ft1
+		fneg.s	ft1, ft1		#reverse sign (direction) of velocity when barrier of display is met.
 		j update_velocity
 
 finish:
-		li	 a7, SYS_EXIT
+		li	 a7, SYS_EXIT		#close program with return value 0.
 		li	 a0, 0
 		ecall
