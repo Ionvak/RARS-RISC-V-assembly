@@ -42,16 +42,17 @@ update_velocity:
 move_ball:
 		li	 t2, 512
 		fcvt.s.w ft4, zero
+		
+		li 	 a7, SLEEP		#pause the program for 62 milliseconds (about 1/16 sec).
+		li	 a0, 62
+		ecall
 		sw	 zero, (t3)		#remove ball from last step.
 		
 		fcvt.w.s t1, ft1
 		bne	 t3, t4, continue
 		beqz	 t1, finish		#go to end if ball is at 0 velocity (stationary) and is in sarting position.
 		
-continue:	li 	 a7, SLEEP		#pause the program for 62 milliseconds (about 1/16 sec).
-		li	 a0, 62
-		ecall
-		
+continue:
 		fgt.s	 t1, ft1, ft4
 		flt.s	 t0, ft1, ft4
 		bnez	 t1, move_up		#move up if velocity is positive.
