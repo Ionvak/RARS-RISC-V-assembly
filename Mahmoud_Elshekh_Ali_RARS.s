@@ -2,7 +2,8 @@
 		.eqv	GET_TIME, 30
 		.eqv	READ_FLOAT, 6
 		.eqv	SLEEP, 32
-		.eqv	AIR_FRICTION, 1024
+		.eqv 	SLEEP_TIME, 12		#time representing how long pixel is lit (how fast ball moves on screeen).
+		.eqv	AIR_FRICTION, 1024	#reciprocal of the air friction coefficient (inversely proportional to velocity).
 		.eqv	COLOR, 0x00FFFFFF	#color is set to white
 	
 		.data 	
@@ -44,7 +45,7 @@ move_ball:
 		fcvt.s.w ft4, zero
 		
 		li 	 a7, SLEEP		#pause the program for 62 milliseconds (about 1/16 sec).
-		li	 a0, 62
+		li	 a0, SLEEP_TIME
 		ecall
 		sw	 zero, (t3)		#remove ball from last step.
 		
